@@ -1,3 +1,4 @@
+import type { OptionOrderBook } from "../types";
 /*
     =================
     Market Maker POV
@@ -38,7 +39,7 @@ const PUT_SKEW_SLOPE = 0.15;
 
 
 
-export function generateMarketPrices(spot: number, strike: number, timeToExpiration: number) {
+export function generateMarketPrices(spot: number, strike: number, timeToExpiration: number): OptionOrderBook {
 
     const moneyness = strike / spot;
 

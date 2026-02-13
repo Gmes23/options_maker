@@ -1,12 +1,12 @@
 // Mock websocket
 
 import { WebSocketServer, WebSocket } from 'ws';
-import { generateMarketPrices } from '@/lib/mock/generateOptions';
-import { generateTrade } from '@/lib/mock/generateTrade';
-import { generateStrikes } from '@/lib/mock/utils/generateStrikes';
+import { generateMarketPrices } from '../lib/mock/generateOptions';
+import { generateTrade } from '../lib/mock/generateTrade';
+import { generateStrikes } from '../lib/mock/utils/generateStrikes';
 
-import { Price } from '@/lib/types';
-import { START_PRICE } from '@/lib/constants';
+import type { Subscription, OptionChain, OptionsMessage } from '../lib/types';
+import { START_PRICE } from '../lib/constants';
 
 
 const PORT = 8080;
@@ -17,10 +17,8 @@ const wss = new WebSocketServer({ port: PORT });
 let latestPrice = START_PRICE;
 let tickId = 0;
 
-type subscription = "trades" | "options";
-
-wss.on('connnection', (ws: WebSocket) => {
-    let subscription: subscription = "trades";
+wss.on('connection', (ws: WebSocket) => {
+    let subscription: Subscription = "trades";
     console.log('Client connected');
 
     ws.on("message", (raw) => {
@@ -44,14 +42,16 @@ wss.on('connnection', (ws: WebSocket) => {
                 const strikes = generateStrikes(latestPrice);
 
 
-                const optionChain = strikes.map((strike) => {
+                const optionsChain: OptionChain[] = strikes.map((strike) => {
                     return {
                         strike,
                         ...generateMarketPrices(latestPrice, strike, timeToExpiration)
                     }
                 });
 
-                ws.send(JSON.stringify({type: "options", optionChain: optionChain }));
+                const optionsMessage: OptionsMessage = {type: "options", optionsChain: optionsChain }
+
+                ws.send(JSON.stringify(optionsMessage));
             }
         }
     }, WS_RATE);
